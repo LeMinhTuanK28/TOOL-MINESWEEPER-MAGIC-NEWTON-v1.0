@@ -1,0 +1,1 @@
+# TIỆN ÍCH ĐỂ AI ĐỌC ẢNH, CLICK, ...;

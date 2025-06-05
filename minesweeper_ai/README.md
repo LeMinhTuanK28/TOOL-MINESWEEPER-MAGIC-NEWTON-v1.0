@@ -1,6 +1,6 @@
 # 🧠 MagicNewton Minesweeper AI Automation v1.0
 
-A professional automation tool built for enterprise use, allowing automated interaction with the **MAGICSWEEPER** game on [MagicNewton](https://magicnewton.com), including:
+A professional automation tool built for enterprise use, allowing automated interaction with the **MAGICSWEEPER** game on [MagicNewton](https://www.magicnewton.com/portal/rewards), including:
 
 - ✅ Auto-login via Chrome profile with MetaMask
 - 🎯 Auto-launch MAGICSWEEPER and handle play limits

@@ -1,4 +1,4 @@
-# 🧠 MagicNewton Minesweeper AI Automation
+# 🧠 MagicNewton Minesweeper AI Automation v1.0
 
 A professional automation tool built for enterprise use, allowing automated interaction with the **MAGICSWEEPER** game on [MagicNewton](https://magicnewton.com), including:
 
@@ -97,6 +97,8 @@ page_debug.html
 
 - Project Owner: Tuan, Le Minh ✨
 - Developer: Tuan, Le Minh
+- Mail: leminhtuank0@gmail.com
+- Phone: +84 762 528 509 | Vietnamese
 
 > "Automation is not just about saving time, it's about scaling intelligence."
 

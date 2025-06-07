@@ -131,21 +131,72 @@ try:
 except Exception as e:
     print("⚠️  Không kiểm tra được trạng thái lượt chơi:", e)
 
-# B4: MỞ MENU CHỌN ĐỘ KHÓ;
+# B4: NẾU CÓ NÚT CONTINUE THÌ CLICK;
 try:
-    difficulty_xpath = "//div[contains(text(), 'Selected Difficulty')]"
-    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, difficulty_xpath)))
-    driver.find_element(By.XPATH, difficulty_xpath).click()
+    continue_button_xpath = "//button[contains(translate(., 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 'CONTINUE')]"
+    WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, continue_button_xpath)))
+    driver.find_element(By.XPATH, continue_button_xpath).click()
+    print("🟢 Đã click nút Continue")
+    time.sleep(2)  # chờ giao diện load sau khi bấm
+except TimeoutException:
+    print("ℹ️ Không có nút Continue – tiếp tục bình thường.")
+except Exception as e:
+    print("⚠️ Lỗi khi cố click Continue:", e)
+
+
+# B5: MỞ MENU CHỌN ĐỘ KHÓ;
+try:
+    from selenium.webdriver.common.keys import Keys
+    from selenium.webdriver.common.action_chains import ActionChains
+
+    print("🔄 Đang dùng phím TAB để đến dòng 'Selected Difficulty'...")
+
+    actions = ActionChains(driver)
+    max_tab = 20  # tránh vòng lặp vô hạn;
+    found_difficulty = False
+
+    for _ in range(max_tab):
+        actions.send_keys(Keys.TAB).perform()
+        time.sleep(0.2)
+        # kiểm tra nội dung phần tử đang được focus;
+        focused_text = driver.execute_script("return document.activeElement.innerText;")
+        if focused_text.strip().upper().startswith("SELECTED DIFFICULTY"):
+            print(f"🔹 Đã focus đến: {focused_text}")
+            actions.send_keys(Keys.ENTER).perform()
+            found_difficulty = True
+            break
+
+    if not found_difficulty:
+        raise Exception("Không tìm thấy dòng 'Selected Difficulty' bằng TAB")
+
     time.sleep(1)
 
-    expert_option_xpath = "//div[contains(text(), 'Expert (30×20)')]"
-    WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, expert_option_xpath)))
-    driver.find_element(By.XPATH, expert_option_xpath).click()
-    print("✅ Đã chọn mức Expert (30x20)")
+    print("🔄 Đang TAB đến Expert (30×20)...")
+    found_expert = False
+
+    for _ in range(10):
+        actions.send_keys(Keys.TAB).perform()
+        time.sleep(0.2)
+        focused_text = driver.execute_script("return document.activeElement.innerText;")
+        if "EXPERT" in focused_text.upper():
+            print(f"🔹 Đã focus đến: {focused_text}")
+            actions.send_keys(Keys.ENTER).perform()
+            found_expert = True
+            break
+
+    if not found_expert:
+        raise Exception("Không tìm thấy lựa chọn 'Expert' bằng TAB")
+
+    print("✅ Đã chọn độ khó: Expert (bằng phím TAB)")
+    time.sleep(2)
 except Exception as e:
-    print("🚫 Không chọn được độ khó:", e)
+    print("🚫 Không chọn được độ khó (phím TAB động):", e)
 
     
-# GIỮ TRÌNH DUYỆT MỞ (tuỳ chọn)
-time.sleep(10)
-driver.quit()
+# GIỮ TRÌNH DUYỆT MỞ (tuỳ chọn);
+try:
+    input("🔵 Nhấn ENTER để đóng trình duyệt và kết thúc...")
+except KeyboardInterrupt:
+    print("⛔ Đã huỷ bằng Ctrl+C")
+finally:
+    driver.quit()

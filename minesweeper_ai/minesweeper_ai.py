@@ -14,15 +14,12 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 import sys
 import os
+from solver import solve_minesweeper  # Thêm import
 
 # CẤU HÌNH CHROME VỚI PROFILE "JOB SOCCER 2" hoặc "YOUR_PROFILE_NAME";
 # Kiểm tra xem đường dẫn profile, version Chrome và ChromeDriver, ... tại đây: Mở chở Chrome bạn muốn kiểm tra -> dán vào tìm kiếm: chrome://version/;
 # Lưu ý: Đảm bảo rằng đã cài đặt ChromeDriver tương ứng với phiên bản Chrome của.
 chrome_options = Options()
-# chrome_options.add_argument("user-data-dir=C:/Users/Admin/AppData/Local/Google/Chrome/User Data")
-# chrome_options.add_argument("profile-directory=Profile 23")  # Đổi nếu muốn dùng profile khác;
-
-# Thêm các tùy chọn tránh lỗi crash
 profile_path = "C:/Selenium/Profile 23"
 if not os.path.exists(profile_path):
     os.makedirs(profile_path)
@@ -36,12 +33,6 @@ chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--remote-debugging-port=9222")
-chrome_options.add_argument("--disable-extensions")
-chrome_options.add_argument("--disable-background-networking")
-chrome_options.add_argument("--disable-sync")
-chrome_options.add_argument("--disable-translate")
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--start-maximized")
 
 # Đường dẫn tới ChromeDriver phù hợp với Chrome 137;
@@ -75,12 +66,10 @@ except Exception as e:
 
 # B2: TÌM GAME MAGICSWEEPER VÀ NHẤN "Play now";
 try:
-    # Chờ khối có chữ MAGICSWEEPER xuất hiện (toàn bộ nội dung)
     WebDriverWait(driver, 30).until(
         EC.presence_of_element_located((By.XPATH, "//div[contains(translate(., 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 'MAGICSWEEPER')]"))
     )
 
-    # Sau đó quét toàn bộ DOM để tìm đúng khối có nút Play now
     divs = driver.find_elements(By.CSS_SELECTOR, "div")
     found = False
 
@@ -120,16 +109,17 @@ time.sleep(5)
 
 # B3: KIỂM TRA TRẠNG THÁI LƯỢT CHƠI;
 try:
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.TAG_NAME, "body"))
-    )
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
     page_text = driver.page_source.upper()
-    if "MAXIMUM GAMEPLAY REACHED" in page_text or "PLAY AGAIN TOMORROW" in page_text:
-        print("⚠️  Đã chơi hết lượt hôm nay. Thoát chương trình.")
+    # Kiểm tra cụ thể hơn, chỉ thoát nếu có thông báo rõ ràng về hết lượt
+    if "MAXIMUM GAMEPLAY REACHED FOR TODAY" in page_text or "PLEASE PLAY AGAIN TOMORROW" in page_text:
+        print("⚠️ Đã chơi hết lượt hôm nay. Thoát chương trình.")
         driver.quit()
         sys.exit()
+    else:
+        print("🟢 Vẫn còn lượt chơi, tiếp tục...")
 except Exception as e:
-    print("⚠️  Không kiểm tra được trạng thái lượt chơi:", e)
+    print("⚠️ Không kiểm tra được trạng thái lượt chơi:", e)
 
 # B4: NẾU CÓ NÚT CONTINUE THÌ CLICK;
 try:
@@ -137,12 +127,11 @@ try:
     WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, continue_button_xpath)))
     driver.find_element(By.XPATH, continue_button_xpath).click()
     print("🟢 Đã click nút Continue")
-    time.sleep(2)  # chờ giao diện load sau khi bấm
+    time.sleep(2)
 except TimeoutException:
     print("ℹ️ Không có nút Continue – tiếp tục bình thường.")
 except Exception as e:
     print("⚠️ Lỗi khi cố click Continue:", e)
-
 
 # B5: MỞ MENU CHỌN ĐỘ KHÓ;
 try:
@@ -152,13 +141,12 @@ try:
     print("🔄 Đang dùng phím TAB để đến dòng 'Selected Difficulty'...")
 
     actions = ActionChains(driver)
-    max_tab = 20  # tránh vòng lặp vô hạn;
+    max_tab = 20
     found_difficulty = False
 
     for _ in range(max_tab):
         actions.send_keys(Keys.TAB).perform()
         time.sleep(0.2)
-        # kiểm tra nội dung phần tử đang được focus;
         focused_text = driver.execute_script("return document.activeElement.innerText;")
         if focused_text.strip().upper().startswith("SELECTED DIFFICULTY"):
             print(f"🔹 Đã focus đến: {focused_text}")
@@ -189,10 +177,19 @@ try:
 
     print("✅ Đã chọn độ khó: Expert (bằng phím TAB)")
     time.sleep(2)
+
+    # GỌI HÀM GIẢI MINESWEEPER
+    print("🔄 Bắt đầu giải Minesweeper...")
+    from solver import solve_minesweeper
+    success = solve_minesweeper(driver)
+    if success:
+        print("🎉 Hoàn thành trò chơi thành công!")
+    else:
+        print("⚠️ Không thể hoàn thành trò chơi.")
+
 except Exception as e:
     print("🚫 Không chọn được độ khó (phím TAB động):", e)
 
-    
 # GIỮ TRÌNH DUYỆT MỞ (tuỳ chọn);
 try:
     input("🔵 Nhấn ENTER để đóng trình duyệt và kết thúc...")
